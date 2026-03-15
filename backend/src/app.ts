@@ -13,8 +13,6 @@ import collectionRoutes from './routes/collections';
 import colorizationRoutes from './routes/colorizations';
 import adminRoutes from './routes/admin';
 
-const __dirname = path.resolve();
-
 const app = express();
 
 // 安全中间件
