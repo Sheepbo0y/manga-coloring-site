@@ -19,9 +19,31 @@ const app = express();
 app.use(helmet());
 
 // CORS 配置
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL?.replace('/manga-coloring-site', ''),
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // 允许没有 origin 的请求（如移动应用或 curl）
+      if (!origin) return callback(null, true);
+      
+      // 检查是否在允许列表中
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // 允许 GitHub Pages 的所有子域名
+      if (origin.endsWith('.github.io')) {
+        return callback(null, true);
+      }
+      
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
