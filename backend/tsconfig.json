@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["ES2022"],
     "moduleResolution": "node",
     "outDir": "./dist",
@@ -11,13 +11,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
+    "declaration": false,
+    "sourceMap": false,
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"],
