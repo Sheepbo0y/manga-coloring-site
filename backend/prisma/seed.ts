@@ -6,6 +6,15 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('开始数据库 seeding...');
 
+  // 检查是否已有数据
+  const userCount = await prisma.user.count();
+  if (userCount > 0) {
+    console.log(`数据库已有 ${userCount} 个用户，跳过 seeding`);
+    return;
+  }
+
+  console.log('开始创建初始数据...');
+
   // 创建管理员用户
   const hashedPassword = await bcrypt.hash('admin123', 10);
   const admin = await prisma.user.upsert({
@@ -131,7 +140,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('Seeding 失败:', e);
     process.exit(1);
   })
   .finally(async () => {

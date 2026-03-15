@@ -77,7 +77,8 @@ router.post('/register', async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    throw error;
+    console.error('注册失败:', error);
+    return res.status(500).json({ error: '注册失败，请稍后再试' });
   }
 });
 
@@ -122,7 +123,8 @@ router.post('/login', async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    throw error;
+    console.error('登录失败:', error);
+    return res.status(500).json({ error: '登录失败，请稍后再试' });
   }
 });
 
@@ -177,7 +179,8 @@ router.put('/profile', authMiddleware, async (req: AuthRequest, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    throw error;
+    console.error('更新资料失败:', error);
+    return res.status(500).json({ error: '更新资料失败，请稍后再试' });
   }
 });
 
@@ -221,7 +224,8 @@ router.put('/password', authMiddleware, async (req: AuthRequest, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    throw error;
+    console.error('修改密码失败:', error);
+    return res.status(500).json({ error: '修改密码失败，请稍后再试' });
   }
 });
 
