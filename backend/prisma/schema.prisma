@@ -78,7 +78,7 @@ model Colorization {
   status        TaskStatus @default(PENDING)
   comfyuiJobId  String?
   errorMessage  String?
-  processingTime Int?     // 处理时间（毫秒）
+  processingTime Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   artworkId     String
