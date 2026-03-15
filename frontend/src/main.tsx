@@ -33,7 +33,7 @@ function PlainLayout({ children }: { children: React.ReactNode }) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/manga-coloring-site">
       <Routes>
         <Route path="/" element={<PageLayout><HomePage /></PageLayout>} />
         <Route path="/gallery" element={<PageLayout><GalleryPage /></PageLayout>} />
