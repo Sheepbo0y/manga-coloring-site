@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  avatar    String?
+  bio       String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  artworks     Artwork[]
+  collections  Collection[]
+  colorizations Colorization[]
+
+  @@index([email])
+  @@index([username])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+// 作品表（原始漫画图片）
+model Artwork {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  coverImage  String
+  originalImage String
+  status      ArtworkStatus @default(PENDING)
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  isFeatured  Boolean  @default(false)
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 上色结果
+  colorizations Colorization[]
+  // 收藏
+  collections   Collection[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([createdAt])
+}
+
+enum ArtworkStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// 上色结果表
+model Colorization {
+  id            String   @id @default(uuid())
+  colorizedImage String
+  version       Int      @default(1)
+  progress      Int      @default(0)
+  status        TaskStatus @default(PENDING)
+  comfyuiJobId  String?
+  errorMessage  String?
+  processingTime Int?     // 处理时间（毫秒）
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  artworkId     String
+  artwork       Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([artworkId])
+  @@index([userId])
+  @@index([status])
+}
+
+// 收藏表
+model Collection {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artworkId String
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artworkId])
+  @@index([userId])
+  @@index([artworkId])
+}
+
+// 任务队列表
+model Task {
+  id          String     @id @default(uuid())
+  type        TaskType
+  status      TaskStatus @default(PENDING)
+  priority    Int        @default(0)
+  payload     Json
+  result      Json?
+  errorMessage String?
+  retryCount  Int        @default(0)
+  maxRetries  Int        @default(3)
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum TaskType {
+  COLORIZE
+  THUMBNAIL
+  WATERMARK
+  CLEANUP
+}
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
