@@ -238,7 +238,7 @@ function generateToken(user: { id: string; email: string; username: string; role
       role: user.role,
     },
     secret,
-    { expiresIn }
+    { expiresIn: expiresIn as any }
   );
 }
 

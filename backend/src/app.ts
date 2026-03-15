@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
@@ -14,8 +13,7 @@ import collectionRoutes from './routes/collections';
 import colorizationRoutes from './routes/colorizations';
 import adminRoutes from './routes/admin';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.resolve();
 
 const app = express();
 
