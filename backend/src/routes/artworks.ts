@@ -85,7 +85,11 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('获取作品列表失败:', error);
-    res.status(500).json({ error: '获取作品列表失败' });
+    console.error('错误详情:', JSON.stringify(error, null, 2));
+    res.status(500).json({ 
+      error: '获取作品列表失败',
+      details: error instanceof Error ? error.message : '未知错误'
+    });
   }
 });
 
