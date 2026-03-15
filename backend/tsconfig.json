@@ -13,7 +13,9 @@
     "resolveJsonModule": true,
     "declaration": false,
     "sourceMap": false,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "moduleDetection": "force",
+    "noImplicitAny": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
