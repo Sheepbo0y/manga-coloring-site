@@ -1,18 +1,32 @@
 import dotenv from 'dotenv';
 import app from './app';
 import { prisma, disconnect } from './lib/prisma';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
 const PORT = parseInt(process.env.PORT || '3001');
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// 确保 uploads 目录存在
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log(`✅ 创建 uploads 目录：${uploadsDir}`);
+}
+
 async function startServer() {
   try {
-    // 验证必要的环境变量
+    // 验证必要的环境变量 - Railway 部署时必须设置
     if (!process.env.DATABASE_URL) {
-      console.warn('⚠️  警告：DATABASE_URL 未设置，使用默认值');
+      console.error('❌ 错误：DATABASE_URL 环境变量未设置');
+      console.error('   Railway 部署需要在环境变量中设置 DATABASE_URL');
+      console.error('   运行：railway variables set DATABASE_URL=your_database_url');
+      process.exit(1);
     }
+
+    console.log('✅ DATABASE_URL 已设置');
 
     // 测试数据库连接
     await prisma.$connect();

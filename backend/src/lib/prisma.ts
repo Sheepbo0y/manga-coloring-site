@@ -4,14 +4,10 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// 配置 Prisma 客户端以支持 Railway 部署
+// PrismaClient 会自动从环境变量读取 DATABASE_URL
+// 不要在构造函数中传递 datasources，让 Prisma 自动处理
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
 });
 
 if (process.env.NODE_ENV !== 'production') {
