@@ -82,6 +82,16 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 请求日志中间件
+app.use((req, res, next) => {
+  console.log(`[请求] ${req.method} ${req.path}`, {
+    headers: req.headers,
+    body: req.body,
+    query: req.query,
+  });
+  next();
+});
+
 // 静态文件服务（上传的图片）
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 

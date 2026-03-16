@@ -87,26 +87,37 @@ router.post('/register', async (req, res) => {
  */
 router.post('/login', async (req, res) => {
   try {
+    console.log('[登录] 收到登录请求:', { email: req.body?.email });
+
     const body = loginSchema.parse(req.body);
+    console.log('[登录] 请求体验证通过，邮箱:', body.email);
 
     // 查找用户
+    console.log('[登录] 开始查询数据库...');
     const user = await prisma.user.findUnique({
       where: { email: body.email },
     });
+    console.log('[登录] 数据库查询完成，用户是否存在:', !!user);
 
     if (!user) {
+      console.log('[登录] 用户不存在，返回 401');
       return res.status(401).json({ error: '邮箱或密码错误' });
     }
 
     // 验证密码
+    console.log('[登录] 开始验证密码...');
     const isValidPassword = await bcrypt.compare(body.password, user.password);
+    console.log('[登录] 密码验证结果:', isValidPassword);
 
     if (!isValidPassword) {
+      console.log('[登录] 密码错误，返回 401');
       return res.status(401).json({ error: '邮箱或密码错误' });
     }
 
     // 生成 JWT
+    console.log('[登录] 开始生成 JWT...');
     const token = generateToken(user);
+    console.log('[登录] JWT 生成成功');
 
     res.json({
       message: '登录成功',
@@ -120,10 +131,10 @@ router.post('/login', async (req, res) => {
       token,
     });
   } catch (error) {
+    console.error('[登录] 发生错误:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('登录失败:', error);
     return res.status(500).json({ error: '登录失败，请稍后再试' });
   }
 });

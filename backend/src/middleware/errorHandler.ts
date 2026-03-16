@@ -22,7 +22,12 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  console.error(`[错误处理] ${req.method} ${req.path}:`, err);
+  console.error(`[错误处理] ${req.method} ${req.path}:`, {
+    message: err.message,
+    stack: err.stack,
+    name: err.name,
+    code: (err as any).code,
+  });
 
   // Prisma 错误处理
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -38,7 +43,7 @@ export const errorHandler = (
   }
 
   // 未知错误
-  console.error('未处理的错误:', err);
+  console.error('[未处理的错误]:', err);
 
   return res.status(500).json({
     error: process.env.NODE_ENV === 'production'
