@@ -36,6 +36,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://sheepboy.github.io',
   'https://sheepboy.github.io/manga-coloring-site',
+  'https://sheepbo0y.github.io',
+  'https://sheepbo0y.github.io/manga-coloring-site',
 ].filter(Boolean);
 
 // CORS 预检缓存优化
