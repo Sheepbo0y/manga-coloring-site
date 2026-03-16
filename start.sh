@@ -30,9 +30,9 @@ if [ $attempt -eq $max_attempts ]; then
   exit 1
 fi
 
-echo "运行数据库迁移..."
+echo "同步数据库 Schema..."
 cd backend
-npx prisma migrate deploy
+npx prisma db push --skip-generate
 
 echo "启动应用..."
 npm start
