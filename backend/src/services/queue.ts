@@ -3,9 +3,9 @@ import type { Job } from 'bull';
 import { prisma } from '../lib/prisma';
 import { comfyUIService } from './comfyui';
 
-const REDIS_URL = process.env.REDIS_URL || process.env.REDIS_HOST;
+const REDIS_URL = process.env.REDIS_URL;
 
-const isRedisConfigured = !!(REDIS_URL || process.env.REDIS_HOST);
+const isRedisConfigured = !!(REDIS_URL && REDIS_URL.startsWith('redis'));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let colorizationQueue: any = null;
