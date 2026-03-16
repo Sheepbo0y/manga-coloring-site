@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FunnelIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
 import { artworkApi } from '@/lib/api';
 import { ArtworkCard, ArtworkCardSkeleton } from '@/components/ArtworkCard';
@@ -87,16 +88,31 @@ export function GalleryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-gray-50"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
           <h1 className="text-3xl font-bold text-gray-900 mb-2">画廊</h1>
           <p className="text-gray-600">探索精彩的 AI 上色作品</p>
-        </div>
+        </motion.div>
 
         {/* Filters */}
-        <div className="mb-6 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-6 space-y-4"
+        >
           {/* Tags */}
           <div className="flex flex-wrap gap-2">
             {TAGS.map((tag) => (
@@ -151,18 +167,30 @@ export function GalleryPage() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+        >
           {loading && artworks.length === 0
             ? Array.from({ length: 12 }).map((_, i) => (
                 <ArtworkCardSkeleton key={i} />
               ))
-            : artworks.map((artwork) => (
-                <ArtworkCard key={artwork.id} artwork={artwork} />
+            : artworks.map((artwork, index) => (
+                <motion.div
+                  key={artwork.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.03 }}
+                >
+                  <ArtworkCard artwork={artwork} />
+                </motion.div>
               ))}
-        </div>
+        </motion.div>
 
         {/* Load more */}
         {!loading && artworks.length > 0 && hasMore && (
@@ -202,6 +230,6 @@ export function GalleryPage() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

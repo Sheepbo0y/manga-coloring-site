@@ -1,16 +1,17 @@
 import Queue from 'bull';
 import type { Job } from 'bull';
 import { prisma } from '../lib/prisma';
-import { comfyUIService } from './comfyui';
+import { colorizeImage, isConfigured } from './seedream';
 
 const REDIS_URL = process.env.REDIS_URL;
 
 const isRedisConfigured = !!(REDIS_URL && REDIS_URL.startsWith('redis'));
+const isSeedreamConfigured = isConfigured();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let colorizationQueue: any = null;
 
-if (isRedisConfigured) {
+if (isRedisConfigured && isSeedreamConfigured) {
   const redisConfig = REDIS_URL 
     ? { url: REDIS_URL }
     : {
@@ -45,52 +46,23 @@ if (isRedisConfigured) {
         data: { status: 'RUNNING', progress: 10 },
       });
 
+      // 使用 Seedream API 进行上色
       await prisma.colorization.update({
         where: { id: colorizationId },
-        data: { progress: 20 },
+        data: { progress: 30 },
       });
 
-      const comfyuiJobId = await comfyUIService.submitColorization(
-        colorizationId,
-        imageUrl
-      );
+      job.progress(30);
 
-      let progress = 20;
-      let completed = false;
-      const maxPollTime = 5 * 60 * 1000;
-      const pollInterval = 2000;
+      // 调用 Seedream API 生成彩色图片
+      const resultUrl = await colorizeImage(imageUrl);
 
-      while (!completed && Date.now() - startTime < maxPollTime) {
-        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      await prisma.colorization.update({
+        where: { id: colorizationId },
+        data: { progress: 90 },
+      });
 
-        const { progress: comfyProgress, status } =
-          await comfyUIService.getProgress(comfyuiJobId);
-
-        progress = 20 + Math.floor((comfyProgress / 100) * 70);
-
-        await prisma.colorization.update({
-          where: { id: colorizationId },
-          data: { progress },
-        });
-
-        if (status === 'COMPLETED') {
-          completed = true;
-        } else if (status === 'FAILED') {
-          throw new Error('ComfyUI 处理失败');
-        }
-
-        job.progress(progress);
-      }
-
-      if (!completed) {
-        throw new Error('处理超时');
-      }
-
-      const resultUrl = await comfyUIService.getResult(comfyuiJobId);
-
-      if (!resultUrl) {
-        throw new Error('未获取到处理结果');
-      }
+      job.progress(90);
 
       const processingTime = Date.now() - startTime;
 
@@ -145,7 +117,12 @@ if (isRedisConfigured) {
     console.error('队列错误:', err);
   });
 } else {
-  console.log('⚠️  Redis 未配置，队列功能将不可用');
+  if (!isRedisConfigured) {
+    console.log('⚠️  Redis 未配置，队列功能将不可用');
+  }
+  if (!isSeedreamConfigured) {
+    console.log('⚠️  MODELVERSE_API_KEY 未配置，Seedream API 将不可用');
+  }
 }
 
 export { colorizationQueue };

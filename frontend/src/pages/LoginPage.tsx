@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -8,6 +8,7 @@ import { Input } from '@/components/Input';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setUser, setToken } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,7 +34,10 @@ export function LoginPage() {
       localStorage.setItem('user', JSON.stringify(user));
 
       toast.success('登录成功');
-      navigate('/');
+
+      // 获取登录前要跳转的页面，如果没有则跳转到首页
+      const from = (location.state as { from?: string })?.from || '/';
+      navigate(from);
     } catch (error: unknown) {
       const message =
         error instanceof Error || typeof error === 'object' && error !== null && 'message' in error
