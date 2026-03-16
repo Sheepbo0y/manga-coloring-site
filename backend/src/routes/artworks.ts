@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { upload } from '../middleware/upload';
-import { colorizationQueue } from '../services/queue';
+import { addColorizationJob } from '../services/queue';
 import { z } from 'zod';
 
 const router = Router();
@@ -282,15 +282,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req: AuthRequest
     });
 
     // 添加到任务队列
-    await colorizationQueue.add(
-      {
-        colorizationId: colorization.id,
-        imageUrl,
-      },
-      {
-        priority: 1,
-      }
-    );
+    await addColorizationJob(colorization.id, imageUrl);
 
     res.status(201).json({
       message: '作品上传成功，已开始处理',
