@@ -11,7 +11,20 @@ const router = Router();
 const createArtworkSchema = z.object({
   title: z.string().min(1, '请输入作品标题').max(100, '标题最多 100 个字符'),
   description: z.string().max(500, '描述最多 500 个字符').optional(),
-  tags: z.array(z.string()).max(10, '最多 10 个标签').optional(),
+  tags: z.union([
+    z.array(z.string()).max(10, '最多 10 个标签'),
+    z.string(), // 允许前端发送的 JSON 字符串
+  ]).optional(),
+}).transform((data) => {
+  // 如果是字符串，尝试解析为数组
+  if (typeof data.tags === 'string') {
+    try {
+      data.tags = JSON.parse(data.tags);
+    } catch {
+      data.tags = [];
+    }
+  }
+  return data;
 });
 
 /**
@@ -234,7 +247,8 @@ router.post('/', authMiddleware, upload.single('image'), async (req: AuthRequest
 
     const body = createArtworkSchema.parse(req.body);
 
-    const imageUrl = `/uploads/${req.file.destination.replace('./uploads/', '')}/${req.file.filename}`;
+    const dateDir = req.file.destination.split('/').pop();
+    const imageUrl = `/uploads/${dateDir}/${req.file.filename}`;
 
     // 创建作品记录
     const artwork = await prisma.artwork.create({
