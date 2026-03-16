@@ -13,19 +13,27 @@ const createArtworkSchema = z.object({
   description: z.string().max(500, '描述最多 500 个字符').optional(),
   tags: z.union([
     z.array(z.string()).max(10, '最多 10 个标签'),
-    z.string(), // 允许前端发送的 JSON 字符串
+    z.string(),
   ]).optional(),
-}).transform((data) => {
-  // 如果是字符串，尝试解析为数组
+}).transform((data): { title: string; description?: string; tags: string[] } => {
+  let tags: string[] = [];
   if (typeof data.tags === 'string') {
     try {
-      data.tags = JSON.parse(data.tags);
+      tags = JSON.parse(data.tags);
     } catch {
-      data.tags = [];
+      tags = [];
     }
+  } else if (Array.isArray(data.tags)) {
+    tags = data.tags;
   }
-  return data;
+  return {
+    title: data.title,
+    description: data.description,
+    tags,
+  };
 });
+
+type CreateArtworkInput = z.infer<typeof createArtworkSchema>;
 
 /**
  * 获取作品列表（分页 + 筛选）
@@ -257,7 +265,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req: AuthRequest
         description: body.description,
         coverImage: imageUrl,
         originalImage: imageUrl,
-        tags: body.tags || [],
+        tags: (body.tags as string[]) || [],
         status: 'PENDING',
         userId: req.user!.id,
       },
