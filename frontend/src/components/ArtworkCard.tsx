@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { HeartIcon, EyeIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { motion } from 'framer-motion';
-import { formatNumber, formatDate } from '@/lib/utils';
+import { formatNumber, formatDate, getImageUrl } from '@/lib/utils';
 import type { Artwork } from '@/types';
 
 interface ArtworkCardProps {
@@ -14,8 +14,8 @@ interface ArtworkCardProps {
 }
 
 export function ArtworkCard({ artwork, liked = false, onLike, onQuickView, index = 0 }: ArtworkCardProps) {
-  const colorizedImage = artwork.colorizations?.[0]?.colorizedImage;
-  const displayImage = colorizedImage || artwork.coverImage;
+  const colorizedImage = getImageUrl(artwork.colorizations?.[0]?.colorizedImage);
+  const displayImage = colorizedImage || getImageUrl(artwork.coverImage);
 
   return (
     <motion.div

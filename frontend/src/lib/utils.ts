@@ -188,3 +188,26 @@ export async function generateThumbnail(file: File, size = 300): Promise<Blob> {
     reader.onerror = () => reject(new Error('文件读取失败'));
   });
 }
+
+/**
+ * 获取完整的图片 URL
+ * 将相对路径转换为完整的后端 URL
+ */
+export function getImageUrl(imagePath: string | undefined): string {
+  if (!imagePath) return '';
+  
+  // 如果已经是完整 URL，直接返回
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // 获取后端 base URL（去掉 /api 后缀）
+  const apiBaseUrl = (import.meta as unknown as { env: { VITE_API_URL?: string } }).env.VITE_API_URL ||
+    'https://manga-coloring-backend-production.up.railway.app/api';
+  const baseUrl = apiBaseUrl.replace('/api', '');
+  
+  // 确保路径以 / 开头
+  const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+  
+  return `${baseUrl}${path}`;
+}

@@ -8,6 +8,7 @@ import {
   ShareIcon,
 } from '@heroicons/react/24/outline';
 import type { Artwork } from '@/types';
+import { getImageUrl } from '@/lib/utils';
 
 interface LightboxProps {
   artworks: Artwork[];
@@ -44,7 +45,7 @@ export function Lightbox({
 
   const handleDownload = useCallback(async () => {
     const artwork = artworks[current];
-    const imageUrl = artwork.colorizations?.[0]?.colorizedImage || artwork.coverImage;
+    const imageUrl = getImageUrl(artwork.colorizations?.[0]?.colorizedImage) || getImageUrl(artwork.coverImage);
 
     try {
       const response = await fetch(imageUrl);
@@ -106,7 +107,7 @@ export function Lightbox({
   }, [isOpen, handleKeyDown]);
 
   const artwork = artworks[current];
-  const imageUrl = artwork?.colorizations?.[0]?.colorizedImage || artwork?.coverImage;
+  const imageUrl = getImageUrl(artwork?.colorizations?.[0]?.colorizedImage) || getImageUrl(artwork?.coverImage);
 
   return (
     <AnimatePresence>

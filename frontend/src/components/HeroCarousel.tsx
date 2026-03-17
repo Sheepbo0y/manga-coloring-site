@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { artworkApi } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import type { Artwork } from '@/types';
 
 export function HeroCarousel() {
@@ -52,7 +53,7 @@ export function HeroCarousel() {
           <Link to={`/artwork/${artwork.id}`} className="block h-full">
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
             <img
-              src={artwork.colorizations?.[0]?.colorizedImage || artwork.coverImage}
+              src={getImageUrl(artwork.colorizations?.[0]?.colorizedImage) || getImageUrl(artwork.coverImage)}
               alt={artwork.title}
               className="w-full h-full object-cover"
             />

@@ -14,6 +14,7 @@ import {
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { motion, AnimatePresence } from 'framer-motion';
 import { artworkApi, collectionApi } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import { ImageCompare } from '@/components/ImageCompare';
@@ -172,8 +173,8 @@ export function ArtworkDetailPage() {
     );
   }
 
-  const colorizedImage = artwork.colorizations?.[0]?.colorizedImage;
-  const originalImage = artwork.originalImage;
+  const colorizedImage = getImageUrl(artwork.colorizations?.[0]?.colorizedImage);
+  const originalImage = getImageUrl(artwork.originalImage);
   const isProcessing = artwork.status === 'PROCESSING' || artwork.status === 'PENDING';
   const isFailed = artwork.status === 'FAILED';
   const displayImage = colorizedImage || originalImage;
