@@ -11,12 +11,15 @@ import {
   UserIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
+import { NotificationDropdown } from './NotificationDropdown';
 
 export function Header() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -66,6 +69,20 @@ export function Header() {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
+                {/* Notification Bell */}
+                <div className="relative">
+                  <button
+                    onClick={() => setNotificationOpen(!notificationOpen)}
+                    className="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                  >
+                    <BellIcon className="w-6 h-6" />
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
+                  </button>
+                  {notificationOpen && (
+                    <NotificationDropdown onClose={() => setNotificationOpen(false)} />
+                  )}
+                </div>
+
                 {/* User Menu */}
                 <Menu as="div" className="relative">
                   <Menu.Button className="flex items-center space-x-2.5 text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">

@@ -44,9 +44,14 @@ router.get('/', async (req, res) => {
     const limit = parseInt(req.query.limit as string) || 12;
     const status = req.query.status as string;
     const tag = req.query.tag as string;
+    const tags = req.query.tags as string; // 多个标签，逗号分隔
     const sortBy = req.query.sortBy as string || 'createdAt';
     const order = req.query.order as string || 'desc';
     const isFeatured = req.query.isFeatured === 'true';
+    const search = req.query.search as string; // 搜索关键词
+    const userId = req.query.userId as string; // 按用户筛选
+    const dateFrom = req.query.dateFrom as string; // 起始日期
+    const dateTo = req.query.dateTo as string; // 结束日期
 
     const skip = (page - 1) * limit;
 
@@ -64,12 +69,49 @@ router.get('/', async (req, res) => {
       where.tags = { has: tag };
     }
 
+    // 多标签筛选
+    if (tags) {
+      const tagList = tags.split(',').filter(Boolean);
+      if (tagList.length > 0) {
+        where.tags = { hasEvery: tagList };
+      }
+    }
+
+    // 搜索关键词（标题或描述）
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // 按用户筛选
+    if (userId) {
+      where.userId = userId;
+    }
+
+    // 日期范围筛选
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) {
+        (where.createdAt as Record<string, string>).gte = dateFrom;
+      }
+      if (dateTo) {
+        (where.createdAt as Record<string, string>).lte = dateTo;
+      }
+    }
+
+    // 排序字段白名单
+    const allowedSortFields = ['createdAt', 'views', 'likes', 'title'];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const sortOrder = order === 'asc' ? 'asc' : 'desc';
+
     const [artworks, total] = await Promise.all([
       prisma.artwork.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { [sortBy]: order },
+        orderBy: { [sortField]: sortOrder },
         include: {
           user: {
             select: {
@@ -107,7 +149,7 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('获取作品列表失败:', error);
     console.error('错误详情:', JSON.stringify(error, null, 2));
-    res.status(500).json({ 
+    res.status(500).json({
       error: '获取作品列表失败',
       details: error instanceof Error ? error.message : '未知错误'
     });

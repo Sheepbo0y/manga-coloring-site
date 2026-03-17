@@ -21,9 +21,14 @@ model User {
   updatedAt DateTime @updatedAt
 
   // 关系
-  artworks     Artwork[]
-  collections  Collection[]
-  colorizations Colorization[]
+  artworks       Artwork[]
+  collections    Collection[]
+  colorizations  Colorization[]
+  follows        Follow[]       @relation("follower")
+  followers      Follow[]       @relation("following")
+  comments       Comment[]
+  notifications  Notification[] @relation("NotificationUser")
+  sentNotifications Notification[] @relation("NotificationFromUser")
 
   @@index([email])
   @@index([username])
@@ -56,6 +61,10 @@ model Artwork {
   colorizations Colorization[]
   // 收藏
   collections   Collection[]
+  // 评论
+  comments      Comment[]
+  // 通知
+  notifications Notification[]
 
   @@index([userId])
   @@index([status])
@@ -104,6 +113,65 @@ model Collection {
   @@unique([userId, artworkId])
   @@index([userId])
   @@index([artworkId])
+}
+
+// 关注表
+model Follow {
+  id         DateTime @default(now())
+  followerId String
+  follower   User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following  User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// 评论表
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artworkId String
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@index([userId])
+  @@index([artworkId])
+  @@index([parentId])
+}
+
+// 通知表
+model Notification {
+  id        String   @id @default(uuid())
+  type      NotificationType
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  fromUserId String?
+  fromUser  User?    @relation("NotificationFromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
+  artworkId String?
+  artwork   Artwork? @relation(fields: [artworkId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  NEW_COMMENT
+  NEW_FOLLOW
+  NEW_LIKE
+  ARTWORK_FEATUREED
+  SYSTEM
 }
 
 // 任务队列表

@@ -6,6 +6,12 @@ export interface User {
   bio?: string;
   role: 'USER' | 'ADMIN' | 'MODERATOR';
   createdAt: string;
+  _count?: {
+    artworks: number;
+    followers: number;
+    follows: number;
+    collections: number;
+  };
 }
 
 export interface Artwork {
@@ -52,6 +58,42 @@ export interface Collection {
   userId: string;
   artworkId: string;
   artwork?: Artwork;
+}
+
+export interface Follow {
+  id: string;
+  followerId: string;
+  followingId: string;
+  follower?: Pick<User, 'id' | 'username' | 'avatar' | 'bio' | '_count'>;
+  following?: Pick<User, 'id' | 'username' | 'avatar' | 'bio' | '_count'>;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  user?: Pick<User, 'id' | 'username' | 'avatar'>;
+  artworkId: string;
+  artwork?: Artwork;
+  parentId?: string;
+  parent?: Comment;
+  replies?: Comment[];
+  _count?: {
+    replies: number;
+  };
+}
+
+export interface Notification {
+  id: string;
+  type: 'NEW_COMMENT' | 'NEW_FOLLOW' | 'NEW_LIKE' | 'ARTWORK_FEATUREED' | 'SYSTEM';
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  userId: string;
+  fromUser?: Pick<User, 'id' | 'username' | 'avatar'>;
+  artwork?: Pick<Artwork, 'id' | 'title' | 'coverImage'>;
 }
 
 export interface Task {

@@ -62,9 +62,14 @@ export const artworkApi = {
     limit?: number;
     status?: string;
     tag?: string;
+    tags?: string;
     sortBy?: string;
     order?: string;
     isFeatured?: boolean;
+    search?: string;
+    userId?: string;
+    dateFrom?: string;
+    dateTo?: string;
   }) => api.get('/artworks', { params }),
 
   getPopular: (limit?: number) =>
@@ -126,4 +131,58 @@ export const adminApi = {
 
   setFeatured: (id: string, isFeatured: boolean) =>
     api.patch(`/admin/artworks/${id}/featured`, { isFeatured }),
+};
+
+// 关注相关 API
+export const followApi = {
+  getFollowing: (userId: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/follows/following/${userId}`, { params }),
+
+  getFollowers: (userId: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/follows/followers/${userId}`, { params }),
+
+  check: (userId: string) => api.get(`/follows/check/${userId}`),
+
+  follow: (userId: string) => api.post(`/follows/${userId}`),
+
+  unfollow: (userId: string) => api.delete(`/follows/${userId}`),
+};
+
+// 评论相关 API
+export const commentApi = {
+  getArtworkComments: (artworkId: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/comments/artwork/${artworkId}`, { params }),
+
+  getUserComments: (userId: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/comments/user/${userId}`, { params }),
+
+  create: (data: { content: string; artworkId: string; parentId?: string }) =>
+    api.post('/comments', data),
+
+  delete: (id: string) => api.delete(`/comments/${id}`),
+};
+
+// 用户相关 API
+export const userApi = {
+  getById: (id: string) => api.get(`/users/${id}`),
+
+  getArtworks: (id: string, params?: { page?: number; limit?: number; status?: string }) =>
+    api.get(`/users/${id}/artworks`, { params }),
+
+  getCollections: (id: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/users/${id}/collections`, { params }),
+};
+
+// 通知相关 API
+export const notificationApi = {
+  getList: (params?: { page?: number; limit?: number; unread?: boolean }) =>
+    api.get('/notifications', { params }),
+
+  getUnreadCount: () => api.get('/notifications/unread/count'),
+
+  markAsRead: (id: string) => api.patch(`/notifications/${id}/read`),
+
+  markAllAsRead: () => api.patch('/notifications/read-all'),
+
+  delete: (id: string) => api.delete(`/notifications/${id}`),
 };

@@ -10,14 +10,14 @@ import { artworkApi } from '@/lib/api';
 
 export function UploadPage() {
   const navigate = useNavigate();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | Blob | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = (file: File | Blob) => {
     setSelectedFile(file);
   };
 

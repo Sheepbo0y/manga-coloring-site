@@ -9,6 +9,7 @@ import {
   ArrowDownTrayIcon,
   ArrowsPointingOutIcon,
   PencilIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +17,7 @@ import { artworkApi, collectionApi } from '@/lib/api';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import { ImageCompare } from '@/components/ImageCompare';
+import { CommentList } from '@/components/CommentList';
 import { formatDate, formatDuration, formatNumber } from '@/lib/utils';
 import type { Artwork } from '@/types';
 
@@ -28,6 +30,8 @@ export function ArtworkDetailPage() {
   const [collected, setCollected] = useState(false);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -388,25 +392,28 @@ export function ArtworkDetailPage() {
               {artwork.user && (
                 <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 p-6">
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">作者</h3>
-                  <div className="flex items-center space-x-3">
-                    {artwork.user.avatar ? (
-                      <img
-                        src={artwork.user.avatar}
-                        alt={artwork.user.username}
-                        className="w-12 h-12 rounded-full ring-2 ring-gray-100 dark:ring-gray-800"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
-                        <span className="text-primary-600 dark:text-primary-400 font-medium">
-                          {artwork.user.username[0]?.toUpperCase()}
-                        </span>
+                  <div className="flex items-center justify-between">
+                    <Link to={`/user/${artwork.user.id}`} className="flex items-center space-x-3 group">
+                      {artwork.user.avatar ? (
+                        <img
+                          src={artwork.user.avatar}
+                          alt={artwork.user.username}
+                          className="w-12 h-12 rounded-full ring-2 ring-gray-100 dark:ring-gray-800 group-hover:ring-primary-200 transition-all"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
+                          <span className="text-primary-600 dark:text-primary-400 font-medium">
+                            {artwork.user.username[0]?.toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                          {artwork.user.username}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">查看详细</p>
                       </div>
-                    )}
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
-                        {artwork.user.username}
-                      </p>
-                    </div>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -440,6 +447,33 @@ export function ArtworkDetailPage() {
                   发布于 {formatDate(artwork.createdAt)}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Comments Section */}
+          <div className="mt-8">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <ChatBubbleLeftRightIcon className="w-6 h-6" />
+                  评论
+                  <span className="text-sm font-normal text-gray-500">
+                    ({commentCount})
+                  </span>
+                </h2>
+                <button
+                  onClick={() => setShowComments(!showComments)}
+                  className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                >
+                  {showComments ? '收起' : '展开'}
+                </button>
+              </div>
+              {showComments && artwork.id && (
+                <CommentList
+                  artworkId={artwork.id}
+                  onCommentCountChange={setCommentCount}
+                />
+              )}
             </div>
           </div>
         </div>

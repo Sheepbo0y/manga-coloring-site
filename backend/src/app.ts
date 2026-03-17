@@ -13,6 +13,10 @@ import artworkRoutes from './routes/artworks';
 import collectionRoutes from './routes/collections';
 import colorizationRoutes from './routes/colorizations';
 import adminRoutes from './routes/admin';
+import followRoutes from './routes/follows';
+import commentRoutes from './routes/comments';
+import userRoutes from './routes/users';
+import notificationRoutes from './routes/notifications';
 
 const app = express();
 
@@ -121,6 +125,10 @@ app.use('/api/artworks', artworkRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/colorizations', colorizationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/follows', followRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 健康检查 - 包含数据库状态
 app.get('/api/health', async (req, res) => {

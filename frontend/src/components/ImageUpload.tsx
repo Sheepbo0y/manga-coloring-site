@@ -1,12 +1,17 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { clsx } from 'clsx';
+import { compressImage } from '@/lib/utils';
 
 interface ImageUploadProps {
-  onFileSelect: (file: File) => void;
+  onFileSelect: (file: File | Blob) => void;
   accept?: string;
   maxSize?: number;
   disabled?: boolean;
   className?: string;
+  compress?: boolean;
+  compressQuality?: number;
+  maxWidth?: number;
+  maxHeight?: number;
 }
 
 export function ImageUpload({
@@ -15,10 +20,15 @@ export function ImageUpload({
   maxSize = 10 * 1024 * 1024,
   disabled = false,
   className,
+  compress = true,
+  compressQuality = 0.85,
+  maxWidth = 2048,
+  maxHeight = 2048,
 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string>('');
   const [preview, setPreview] = useState<string>('');
+  const [compressing, setCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
@@ -36,23 +46,53 @@ export function ImageUpload({
   };
 
   const handleFile = useCallback(
-    (file: File) => {
+    async (file: File) => {
       setError('');
 
       if (!validateFile(file)) {
         return;
       }
 
-      // 创建预览
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        let processedFile: File | Blob = file;
 
-      onFileSelect(file);
+        // 如果需要压缩
+        if (compress) {
+          setCompressing(true);
+          try {
+            const compressedBlob = await compressImage(
+              file,
+              compressQuality,
+              maxWidth,
+              maxHeight
+            );
+            // 创建新的 File 对象，保持原始文件名
+            processedFile = new File([compressedBlob], file.name, {
+              type: 'image/jpeg',
+            });
+          } catch (compressError) {
+            console.error('图片压缩失败:', compressError);
+            // 压缩失败时使用原文件
+            processedFile = file;
+          } finally {
+            setCompressing(false);
+          }
+        }
+
+        // 创建预览
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setPreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(processedFile);
+
+        onFileSelect(processedFile);
+      } catch (error) {
+        console.error('文件处理失败:', error);
+        setError('文件处理失败，请重试');
+      }
     },
-    [onFileSelect, maxSize]
+    [onFileSelect, maxSize, compress, compressQuality, maxWidth, maxHeight]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -125,6 +165,15 @@ export function ImageUpload({
           className="hidden"
           disabled={disabled}
         />
+
+        {compressing && (
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 rounded-xl flex items-center justify-center z-10">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="mt-2 text-sm text-gray-600">正在压缩图片...</p>
+            </div>
+          </div>
+        )}
 
         {preview ? (
           <div className="relative">
