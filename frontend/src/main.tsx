@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { PageTransition } from '@/components/PageTransition';
 import { HomePage } from '@/pages/HomePage';
 import { GalleryPage } from '@/pages/GalleryPage';
@@ -20,10 +21,11 @@ function PageLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow">
+      <main className="flex-grow pb-16 md:pb-0">
         <PageTransition>{children}</PageTransition>
       </main>
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 }

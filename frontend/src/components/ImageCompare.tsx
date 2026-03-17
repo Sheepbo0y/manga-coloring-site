@@ -1,4 +1,5 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 
 interface ImageCompareProps {
@@ -34,14 +35,27 @@ export function ImageCompare({
 
   const handleMouseDown = () => setIsDragging(true);
   const handleMouseUp = () => setIsDragging(false);
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging) {
+      e.preventDefault();
       handleMove(e.clientX);
     }
   };
 
+  const handleTouchStart = () => {
+    setIsDragging(true);
+  };
+
   const handleTouchMove = (e: React.TouchEvent) => {
-    handleMove(e.touches[0].clientX);
+    if (isDragging) {
+      e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
   };
 
   // 键盘控制
@@ -53,11 +67,21 @@ export function ImageCompare({
     }
   };
 
+  // 全局鼠标事件
+  useEffect(() => {
+    const handleGlobalMouseUp = () => setIsDragging(false);
+
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className={clsx(
-        'relative select-none overflow-hidden rounded-lg',
+        'relative select-none overflow-hidden rounded-lg touch-none',
         'cursor-ew-resize',
         className
       )}
@@ -65,7 +89,9 @@ export function ImageCompare({
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onMouseMove={handleMouseMove}
+      onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="slider"
@@ -83,7 +109,7 @@ export function ImageCompare({
           draggable={false}
         />
         {afterLabel && (
-          <span className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+          <span className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
             {afterLabel}
           </span>
         )}
@@ -94,11 +120,11 @@ export function ImageCompare({
         className="absolute inset-0 overflow-hidden"
         style={{ width: `${sliderPosition}%` }}
       >
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 h-full">
           <img
             src={beforeImage}
             alt="原图"
-            className="w-full h-full object-cover"
+            className="h-full object-cover"
             style={{
               width: containerRef.current?.offsetWidth,
               maxWidth: 'none',
@@ -107,7 +133,7 @@ export function ImageCompare({
           />
         </div>
         {beforeLabel && (
-          <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+          <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
             {beforeLabel}
           </span>
         )}
@@ -118,26 +144,55 @@ export function ImageCompare({
         className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize shadow-lg"
         style={{ left: `${sliderPosition}%` }}
       >
-        {/* 滑动按钮 */}
-        <div
+        {/* 滑动按钮 - 移动端优化 */}
+        <motion.div
+          initial={false}
+          animate={{
+            scale: isDragging ? 1.2 : 1,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 25,
+          }}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                     w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center"
+                     w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center
+                     touch-none active:scale-110 transition-transform"
         >
-          <svg
-            className="w-6 h-6 text-gray-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-              transform="rotate(90 12 12)"
-            />
-          </svg>
-        </div>
+          <div className="flex items-center justify-center gap-1">
+            <svg
+              className="w-5 h-5 text-gray-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <svg
+              className="w-5 h-5 text-gray-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* 移动端提示 */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm md:hidden pointer-events-none">
+        左右滑动对比
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { HeartIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { HeartIcon, EyeIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { motion } from 'framer-motion';
 import { formatNumber, formatDate } from '@/lib/utils';
@@ -9,10 +9,11 @@ interface ArtworkCardProps {
   artwork: Artwork;
   liked?: boolean;
   onLike?: () => void;
+  onQuickView?: () => void;
   index?: number;
 }
 
-export function ArtworkCard({ artwork, liked = false, onLike, index = 0 }: ArtworkCardProps) {
+export function ArtworkCard({ artwork, liked = false, onLike, onQuickView, index = 0 }: ArtworkCardProps) {
   const colorizedImage = artwork.colorizations?.[0]?.colorizedImage;
   const displayImage = colorizedImage || artwork.coverImage;
 
@@ -21,10 +22,11 @@ export function ArtworkCard({ artwork, liked = false, onLike, index = 0 }: Artwo
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.1, 0.25, 1] }}
-      className="group bg-white dark:bg-gray-900 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1"
+      className="group bg-white dark:bg-gray-900 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      onClick={onQuickView}
     >
       {/* Image */}
-      <Link to={`/artwork/${artwork.id}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className="block relative aspect-[3/4] overflow-hidden bg-gray-100 dark:bg-gray-800">
         <motion.img
           src={displayImage}
           alt={artwork.title}
@@ -65,11 +67,23 @@ export function ArtworkCard({ artwork, liked = false, onLike, index = 0 }: Artwo
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileHover={{ opacity: 1, y: 0 }}
-          className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          className="absolute bottom-3 left-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         >
           <button
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
+              onQuickView?.();
+            }}
+            className="flex-1 py-2 rounded-full bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-300 backdrop-blur-md transition-all duration-200 hover:bg-primary-500 hover:text-white font-medium text-sm flex items-center justify-center gap-1"
+          >
+            <ArrowsPointingOutIcon className="w-4 h-4" />
+            快速预览
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               onLike?.();
             }}
             className={`p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
@@ -85,11 +99,11 @@ export function ArtworkCard({ artwork, liked = false, onLike, index = 0 }: Artwo
             )}
           </button>
         </motion.div>
-      </Link>
+      </div>
 
       {/* Content */}
       <div className="p-4">
-        <Link to={`/artwork/${artwork.id}`}>
+        <Link to={`/artwork/${artwork.id}`} onClick={(e) => e.stopPropagation()}>
           <h3 className="font-bold text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
             {artwork.title}
           </h3>

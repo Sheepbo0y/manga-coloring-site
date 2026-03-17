@@ -275,3 +275,87 @@
     transform: translateX(100%);
   }
 }
+
+/* 移动端安全区域 */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 移动端触摸反馈 */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-ghost {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* 防止 iOS 自动缩放 */
+  }
+}
+
+/* 防止下拉刷新 */
+body.prevent-pull-to-refresh {
+  overscroll-behavior-y: contain;
+}
+
+/* 移动端滚动优化 */
+.scrollable {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 隐藏滚动条但保持滚动功能 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 触摸滑动优化 */
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+.touch-pan-y {
+  touch-action: pan-y;
+}
+
+.touch-none {
+  touch-action: none;
+}
+
+/* 移动端图片优化 */
+img {
+  -webkit-user-drag: element;
+  -khtml-user-drag: element;
+  -moz-user-drag: element;
+  -o-user-drag: element;
+}
+
+/* 防止长按选中 */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
