@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_KEY = process.env.MODELVERSE_API_KEY || '';
+const API_KEY = process.env.SEEDREAM_API_KEY || process.env.MODELVERSE_API_KEY || '';
 const BASE_URL = 'https://api.modelverse.cn/v1';
 
 export interface SeedreamResponse {
