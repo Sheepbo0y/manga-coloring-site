@@ -64,8 +64,24 @@ export const adminMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.user || req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: '需要管理员权限' });
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: '请先登录' });
+    }
+
+    // 检查用户是否是管理员（通过 isAdmin 字段或 role 字段）
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { isAdmin: true, role: true },
+    });
+
+    if (!user || (!user.isAdmin && user.role !== 'ADMIN')) {
+      return res.status(403).json({ error: '需要管理员权限' });
+    }
+
+    next();
+  } catch (error) {
+    console.error('管理员认证失败:', error);
+    return res.status(500).json({ error: '管理员认证失败' });
   }
-  next();
 };

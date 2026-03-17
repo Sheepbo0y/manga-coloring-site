@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
@@ -6,7 +6,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { TextArea } from '@/components/Input';
 import { ImageUpload } from '@/components/ImageUpload';
-import { artworkApi } from '@/lib/api';
+import { artworkApi, userApi } from '@/lib/api';
 
 export function UploadPage() {
   const navigate = useNavigate();
@@ -16,6 +16,20 @@ export function UploadPage() {
   const [tags, setTags] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    loadCredits();
+  }, []);
+
+  const loadCredits = async () => {
+    try {
+      const res = await userApi.getCredits();
+      setCredits(res.data.credits);
+    } catch (error: any) {
+      console.error('加载次数失败:', error);
+    }
+  };
 
   const handleFileSelect = (file: File | Blob) => {
     setSelectedFile(file);
@@ -55,6 +69,11 @@ export function UploadPage() {
 
       setUploadProgress(100);
 
+      // 更新剩余次数
+      if (response.data.data?.remainingCredits !== undefined) {
+        setCredits(response.data.data.remainingCredits);
+      }
+
       toast.success('作品上传成功，已开始处理！');
 
       // 跳转到作品详情页
@@ -64,12 +83,14 @@ export function UploadPage() {
           navigate(`/artwork/${artworkId}`);
         }, 500);
       }
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error || typeof error === 'object' && error !== null && 'message' in error
-          ? (error as { message?: string }).message || '上传失败'
-          : '上传失败';
-      toast.error(message);
+    } catch (error: any) {
+      // 处理次数不足的情况
+      if (error.response?.status === 403 && error.response?.data?.error === '免费次数已用完') {
+        toast.error('免费次数已用完，明天配置 Seedream API Key 后可充值');
+      } else {
+        const message = error.response?.data?.error || error.message || '上传失败';
+        toast.error(message);
+      }
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -88,6 +109,18 @@ export function UploadPage() {
           <p className="text-gray-600">
             上传黑白漫画图片，AI 将自动为您上色
           </p>
+          {credits !== null && (
+            <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                当前剩余次数：<span className="font-bold text-lg">{credits}</span>
+                {credits <= 0 && (
+                  <span className="ml-2 text-red-600 dark:text-red-400">
+                    次数已用完，明天配置 Seedream API Key 后可充值
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Upload Form */}

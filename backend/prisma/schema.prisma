@@ -17,6 +17,8 @@ model User {
   avatar    String?
   bio       String?
   role      UserRole @default(USER)
+  freeCredits Int    @default(5)
+  isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -29,6 +31,7 @@ model User {
   comments       Comment[]
   notifications  Notification[] @relation("NotificationUser")
   sentNotifications Notification[] @relation("NotificationFromUser")
+  creditLogs     CreditLog[]
 
   @@index([email])
   @@index([username])
@@ -209,4 +212,18 @@ enum TaskStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+// 积分变动记录表
+model CreditLog {
+  id        String   @id @default(uuid())
+  amount    Int      // 变动的数量（正数增加，负数减少）
+  balance   Int      // 变动后的余额
+  reason    String   // 变动原因
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }

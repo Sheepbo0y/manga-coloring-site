@@ -295,33 +295,74 @@ router.post('/', authMiddleware, upload.single('image'), async (req: AuthRequest
       return res.status(400).json({ error: '请上传图片文件' });
     }
 
+    // 检查用户剩余次数
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { freeCredits: true, username: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: '用户不存在' });
+    }
+
+    if (user.freeCredits <= 0) {
+      return res.status(403).json({
+        error: '免费次数已用完',
+        message: '明天配置 Seedream API Key 后可充值',
+      });
+    }
+
     const body = createArtworkSchema.parse(req.body);
 
     const dateDir = req.file.destination.split('/').pop();
     const imageUrl = `/uploads/${dateDir}/${req.file.filename}`;
 
-    // 创建作品记录
-    const artwork = await prisma.artwork.create({
-      data: {
-        title: body.title,
-        description: body.description,
-        coverImage: imageUrl,
-        originalImage: imageUrl,
-        tags: (body.tags as string[]) || [],
-        status: 'PENDING',
-        userId: req.user!.id,
-      },
+    // 使用事务：扣除次数、创建作品记录、创建上色任务
+    const result = await prisma.$transaction(async (tx) => {
+      // 扣除 1 次次数
+      const newBalance = user.freeCredits - 1;
+      await tx.user.update({
+        where: { id: req.user!.id },
+        data: { freeCredits: newBalance },
+      });
+
+      // 记录次数变动
+      await tx.creditLog.create({
+        data: {
+          userId: req.user!.id,
+          amount: -1,
+          balance: newBalance,
+          reason: '调用上色 API',
+        },
+      });
+
+      // 创建作品记录
+      const artwork = await tx.artwork.create({
+        data: {
+          title: body.title,
+          description: body.description,
+          coverImage: imageUrl,
+          originalImage: imageUrl,
+          tags: (body.tags as string[]) || [],
+          status: 'PENDING',
+          userId: req.user!.id,
+        },
+      });
+
+      // 创建上色任务
+      const colorization = await tx.colorization.create({
+        data: {
+          colorizedImage: '',
+          status: 'PENDING',
+          artworkId: artwork.id,
+          userId: req.user!.id,
+        },
+      });
+
+      return { artwork, colorization, newBalance };
     });
 
-    // 创建上色任务
-    const colorization = await prisma.colorization.create({
-      data: {
-        colorizedImage: '',
-        status: 'PENDING',
-        artworkId: artwork.id,
-        userId: req.user!.id,
-      },
-    });
+    const { artwork, colorization, newBalance } = result;
 
     // 添加到任务队列
     await addColorizationJob(colorization.id, imageUrl);
@@ -334,6 +375,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req: AuthRequest
           id: colorization.id,
           status: colorization.status,
         },
+        remainingCredits: newBalance,
       },
     });
   } catch (error) {

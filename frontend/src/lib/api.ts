@@ -131,6 +131,14 @@ export const adminApi = {
 
   setFeatured: (id: string, isFeatured: boolean) =>
     api.patch(`/admin/artworks/${id}/featured`, { isFeatured }),
+
+  getStats: () => api.get('/admin/stats'),
+
+  updateUserCredits: (id: string, data: { amount: number; reason?: string }) =>
+    api.post(`/admin/users/${id}/credits`, data),
+
+  getCreditLogs: (id: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/admin/users/${id}/credit-logs`, { params }),
 };
 
 // 关注相关 API
@@ -171,6 +179,8 @@ export const userApi = {
 
   getCollections: (id: string, params?: { page?: number; limit?: number }) =>
     api.get(`/users/${id}/collections`, { params }),
+
+  getCredits: () => api.get('/users/me/credits'),
 };
 
 // 通知相关 API

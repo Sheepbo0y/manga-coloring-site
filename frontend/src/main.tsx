@@ -19,6 +19,7 @@ const RegisterPage = lazy(() => import('@/pages/RegisterPage').then(m => ({ defa
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const UserProfilePage = lazy(() => import('@/pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 const NotificationPage = lazy(() => import('@/pages/NotificationPage').then(m => ({ default: m.NotificationPage })));
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 
 // 页面布局组件
 function PageLayout({ children }: { children: React.ReactNode }) {
@@ -65,6 +66,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/profile" element={<PageLayout><ProtectedRoute><ProfilePage /></ProtectedRoute></PageLayout>} />
           <Route path="/user/:id" element={<PageLayout><UserProfilePage /></PageLayout>} />
           <Route path="/notifications" element={<PageLayout><ProtectedRoute><NotificationPage /></ProtectedRoute></PageLayout>} />
+          <Route path="/admin" element={<PageLayout><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageLayout>} />
         </Routes>
       </Suspense>
       <Toaster

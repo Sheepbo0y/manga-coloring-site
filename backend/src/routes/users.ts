@@ -5,6 +5,27 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 const router = Router();
 
 /**
+ * 获取当前用户剩余次数
+ */
+router.get('/me/credits', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { freeCredits: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: '用户不存在' });
+    }
+
+    res.json({ credits: user.freeCredits });
+  } catch (error) {
+    console.error('获取用户次数失败:', error);
+    res.status(500).json({ error: '获取次数失败' });
+  }
+});
+
+/**
  * 获取用户公开信息（主页）
  */
 router.get('/:id', async (req, res) => {

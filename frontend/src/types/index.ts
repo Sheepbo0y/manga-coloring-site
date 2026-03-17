@@ -5,13 +5,33 @@ export interface User {
   avatar?: string;
   bio?: string;
   role: 'USER' | 'ADMIN' | 'MODERATOR';
+  isAdmin: boolean;
+  freeCredits: number;
   createdAt: string;
   _count?: {
     artworks: number;
     followers: number;
     follows: number;
     collections: number;
+    colorizations?: number;
   };
+}
+
+export interface CreditLog {
+  id: string;
+  amount: number;
+  balance: number;
+  reason: string;
+  createdAt: string;
+  user?: Pick<User, 'username'>;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalArtworks: number;
+  totalColorizations: number;
+  totalCollections: number;
+  todayColorizations: number;
 }
 
 export interface Artwork {
