@@ -315,8 +315,16 @@ router.post('/', authMiddleware, upload.single('image'), async (req: AuthRequest
 
     const body = createArtworkSchema.parse(req.body);
 
-    const dateDir = req.file.destination.split('/').pop();
-    const imageUrl = `/uploads/${dateDir}/${req.file.filename}`;
+    // 处理图片 URL：Cloudinary 返回完整 URL，本地存储返回相对路径
+    let imageUrl: string;
+    if (req.file.path && req.file.path.startsWith('http')) {
+      // Cloudinary 返回的完整 URL
+      imageUrl = req.file.path;
+    } else {
+      // 本地存储的相对路径
+      const dateDir = req.file.destination?.split('/').pop() || new Date().toISOString().split('T')[0];
+      imageUrl = `/uploads/${dateDir}/${req.file.filename}`;
+    }
 
     // 使用事务：扣除次数、创建作品记录、创建上色任务
     const result = await prisma.$transaction(async (tx) => {
