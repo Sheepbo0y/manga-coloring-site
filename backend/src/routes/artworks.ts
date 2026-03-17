@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { upload } from '../middleware/upload';
 import { addColorizationJob } from '../services/queue';
+import { colorizeImage, isConfigured as isSeedreamConfigured } from '../services/seedream';
 import { z } from 'zod';
 
 const router = Router();
@@ -364,8 +365,17 @@ router.post('/', authMiddleware, upload.single('image'), async (req: AuthRequest
 
     const { artwork, colorization, newBalance } = result;
 
-    // 添加到任务队列
-    await addColorizationJob(colorization.id, imageUrl);
+    // 添加到任务队列（如果队列可用）
+    const job = await addColorizationJob(colorization.id, imageUrl);
+    
+    // 如果队列不可用，直接同步处理
+    if (!job) {
+      console.log('队列不可用，直接同步处理上色任务');
+      // 异步处理，不阻塞响应
+      processColorization(colorization.id, imageUrl).catch(err => {
+        console.error('同步处理上色失败:', err);
+      });
+    }
 
     res.status(201).json({
       message: '作品上传成功，已开始处理',
@@ -451,5 +461,73 @@ router.get('/user/me', authMiddleware, async (req: AuthRequest, res) => {
     res.status(500).json({ error: '获取我的作品失败' });
   }
 });
+
+// 同步处理上色任务（当队列不可用时）
+async function processColorization(colorizationId: string, imageUrl: string) {
+  const startTime = Date.now();
+  
+  try {
+    // 检查 Seedream 是否配置
+    if (!isSeedreamConfigured()) {
+      throw new Error('Seedream API 未配置');
+    }
+
+    await prisma.colorization.update({
+      where: { id: colorizationId },
+      data: { status: 'RUNNING', progress: 10 },
+    });
+
+    await prisma.colorization.update({
+      where: { id: colorizationId },
+      data: { progress: 30 },
+    });
+
+    // 调用 Seedream API 生成彩色图片
+    const resultUrl = await colorizeImage(imageUrl);
+
+    await prisma.colorization.update({
+      where: { id: colorizationId },
+      data: { progress: 90 },
+    });
+
+    const processingTime = Date.now() - startTime;
+
+    await prisma.colorization.update({
+      where: { id: colorizationId },
+      data: {
+        status: 'COMPLETED',
+        progress: 100,
+        colorizedImage: resultUrl,
+        processingTime,
+      },
+    });
+
+    const colorization = await prisma.colorization.findUnique({
+      where: { id: colorizationId },
+      include: { artwork: true },
+    });
+
+    if (colorization) {
+      await prisma.artwork.update({
+        where: { id: colorization.artworkId },
+        data: { status: 'COMPLETED' },
+      });
+    }
+
+    console.log(`✅ 上色完成: ${colorizationId}, 耗时: ${processingTime}ms`);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
+    
+    await prisma.colorization.update({
+      where: { id: colorizationId },
+      data: {
+        status: 'FAILED',
+        errorMessage,
+      },
+    });
+
+    console.error(`❌ 上色失败: ${colorizationId}, 错误: ${errorMessage}`);
+  }
+}
 
 export default router;
