@@ -96,12 +96,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// 静态文件服务（上传的图片）
+// 静态文件服务（上传的图片）- 添加 CORS 支持
 const uploadsPath = process.env.UPLOAD_DIR || './uploads';
 const resolvedUploadsPath = path.resolve(uploadsPath);
 console.log('[静态文件] 上传目录:', resolvedUploadsPath);
 console.log('[静态文件] 目录存在:', require('fs').existsSync(resolvedUploadsPath));
-app.use('/uploads', express.static(resolvedUploadsPath));
+app.use('/uploads', (req, res, next) => {
+  // 设置 CORS 头，允许 GitHub Pages 访问图片
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+}, express.static(resolvedUploadsPath));
 
 // 速率限制（已调整为更宽松的配置）
 const limiter = rateLimit({
