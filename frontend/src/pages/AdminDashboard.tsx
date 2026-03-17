@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { adminApi, userApi } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { User, AdminStats } from '@/types';
 
@@ -41,6 +41,7 @@ export function AdminDashboard() {
       toast.error('加载用户列表失败：' + (error.response?.data?.error || '未知错误'));
     } finally {
       setUserLoading(false);
+      setLoading(false);
     }
   };
 
