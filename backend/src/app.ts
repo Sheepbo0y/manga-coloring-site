@@ -97,7 +97,11 @@ app.use((req, res, next) => {
 });
 
 // 静态文件服务（上传的图片）
-app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+const uploadsPath = process.env.UPLOAD_DIR || './uploads';
+const resolvedUploadsPath = path.resolve(uploadsPath);
+console.log('[静态文件] 上传目录:', resolvedUploadsPath);
+console.log('[静态文件] 目录存在:', require('fs').existsSync(resolvedUploadsPath));
+app.use('/uploads', express.static(resolvedUploadsPath));
 
 // 速率限制（已调整为更宽松的配置）
 const limiter = rateLimit({
